@@ -14,7 +14,3 @@ runs:
       shell: bash
       run: npm install -g cspell markdownlint-cli2 @cspell/dict-da-dk prettier
     
-    # Install gh extensions required by .scripts/trunk-worthy
-    - name: Install gh extensions
-      shell: bash
-      run: gh extension install lakruzz/gh-set-status > /dev/null 2>&1 || true
