@@ -23,8 +23,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: ./.github/actions/prep-runner 
-
-      - name: test precommit hook
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./.githooks/pre-commit  
+        with:
+          verify: ./.scripts/trunk-worthy
