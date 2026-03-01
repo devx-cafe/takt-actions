@@ -7,19 +7,8 @@
 
 set -euo pipefail
 
-summary() {
-  echo "$1" >> "$GITHUB_STEP_SUMMARY"
-}
-
-fail() {
-  summary "❌ $1"
-  echo "$1" >&2
-  exit 1
-}
-
-as_bool() {
-  [[ "${1:-false}" == "true" ]]
-}
+source "$GITHUB_ACTION_PATH/../actionhelpers/ah-utils.ah" 
+die-unless-inside-work-tree
 
 TARGET_BRANCH="$INPUT_TARGET_BRANCH"
 USER_NAME="$INPUT_USER_NAME"
@@ -33,19 +22,6 @@ CLOSE_ISSUE="$INPUT_CLOSE_ISSUE"
 READY_BRANCH="${GITHUB_REF_NAME}"
 if [[ "$READY_BRANCH" != ready/* ]]; then
   fail "Error: expected a ready/* branch, got '$READY_BRANCH'"
-fi
-
-if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-  summary "This action must run after checkout. Add this step before using the action:"
-  summary '```yaml'
-  summary "      - uses: actions/checkout@v6"
-  summary "        with:"
-  summary "          fetch-depth: 0"
-  summary "          token: \${{ secrets.READY_PUSHER }}"
-  summary '```'
-  summary "Where 'READY_PUSHER' (or what name you choose) is a secret containing a PAT with write access to the repository."
-  summary "⚠️ WARNING: \${{ secrets.GITHUB_TOKEN }} will not work! ...The commit will be created, but that token will not trigger other workflows."
-  fail "Not inside a git work tree"
 fi
 
 DEV_BRANCH="${READY_BRANCH#ready/}"
