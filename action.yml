@@ -9,12 +9,14 @@ inputs:
     default: "main"
   user_name:
     description: "Git user name for operations"
-    required: true
+    required: false
     type: string
+    default: "Ready Pusher Bot"
   user_email:
     description: "Git user email for operations"
-    required: true
+    required: false
     type: string
+    default: "ready-pusher@${{ github.repository_owner }}.github.com"
   token:
     description: "GitHub token for CLI operations, needs write permissions for contents/issues/pull-requests"
     required: true
@@ -45,7 +47,7 @@ runs:
     - name: Ready delivery orchestration
       id: ready
       env:
-        GH_TOKEN: ${{ inputs.token }}
+        INPUT_TOKEN: ${{ inputs.token }}
         INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
         INPUT_USER_NAME: ${{ inputs.user_name }}
         INPUT_USER_EMAIL: ${{ inputs.user_email }}
@@ -54,4 +56,4 @@ runs:
         INPUT_CLOSE_PR: ${{ inputs.close_pr }}
         INPUT_CLOSE_ISSUE: ${{ inputs.close_issue }}
       shell: bash
-      run: ${{ github.action_path }}/ready.ah
+      run: ${{ github.action_path }}/ready-to-trunk.ah
