@@ -1,0 +1,32 @@
+name: Ready to trunk
+# Triggered when a ready/* branch is pushed; fast-forward merges it to trunk.
+
+on:
+  push:
+    branches:
+      - 'ready/*'
+
+jobs:
+  merge-to-trunk:
+    name: Merge to trunk
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.READY_PUSHER }}
+
+      - uses: devx-cafe/ready-to-trunk@main
+        with:
+          user_name: "Ready Pusher"
+          user_email: "ready-pusher@users.noreply.github.com"
+          token: ${{ secrets.READY_PUSHER }}
+          # target_branch: main      # default is main
+          # delete_dev_branch: true  # default is true
+          # delete_ready_branch: true # default is true
+          # close_pr: true           # default is true
+          # close_issue: true        # default is true
