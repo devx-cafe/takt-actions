@@ -13,7 +13,7 @@ concurrency:
 
 
 jobs:
-  prep-runner:
+  trunk-worthy:
     name: Check trunk worthyness
     runs-on: ubuntu-latest
     env:

@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+
+# ACTION HELPER SCRIPT
+# Although this script use standd bash it intended to be run by the action.yml workflow file
+# It assumes that it runs in the context of a GitHub Action
+# hance the dedicated file extesnion .ah (Action Helper) to avoid confusion with regular bash scripts
+
 set -euo pipefail
 
 summary() {
