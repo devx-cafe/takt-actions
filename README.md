@@ -8,10 +8,10 @@ GitHub composite actions that power the [Takt](https://www.lakruzz.com/stories/t
 
 The full workflow is implemented across two GitHub repositories:
 
-| Repository | Role |
-| --- | --- |
+| Repository                                              | Role                                                                                                                                     |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | [`devx-cafe/gh-tt`](https://github.com/devx-cafe/gh-tt) | A `gh` CLI extension that gives developers three commands — `workon`, `wrapup`, `deliver` — to drive the day-to-day flow from a terminal |
-| **`devx-cafe/takt-actions`** (this repo) | GitHub composite actions consumed by the CI/CD workflows that run when code is delivered |
+| **`devx-cafe/takt-actions`** (this repo)                | GitHub composite actions consumed by the CI/CD workflows that run when code is delivered                                                 |
 
 ## Actions in this repository
 

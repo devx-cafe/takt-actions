@@ -24,13 +24,13 @@ Reference this action in your own workflow:
 
 - uses: devx-cafe/takt-actions/ready-to-trunk@v1
   # with: # Uncomment to override defaults
-    # target_branch: main
-    # user_name: "Ready Pusher Bot"
-    # user_email: "ready-pusher@<your-org>.github.com"
-    # delete_dev_branch: true
-    # delete_ready_branch: true
-    # close_pr: true
-    # close_issue: true
+  # target_branch: main
+  # user_name: "Ready Pusher Bot"
+  # user_email: "ready-pusher@<your-org>.github.com"
+  # delete_dev_branch: true
+  # delete_ready_branch: true
+  # close_pr: true
+  # close_issue: true
 ```
 
 > **Note:** `${{ github.token }}` will **not** work for the `checkout` token because pushes made with `GITHUB_TOKEN` do not trigger subsequent workflows. Use a Personal Access Token (PAT) stored as a repository secret (e.g. `READY_PUSHER`).

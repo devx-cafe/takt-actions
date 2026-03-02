@@ -53,18 +53,18 @@ jobs:
 
       - uses: devx-cafe/takt-actions/pr-to-ready@v1
         # with: # Uncomment to override defaults
-          # user_name: "Ready Pusher Bot"
-          # user_email: "ready-pusher@<your-org>.github.com"
+        # user_name: "Ready Pusher Bot"
+        # user_email: "ready-pusher@<your-org>.github.com"
 ```
 
 > **Note:** `${{ github.token }}` will **not** work for the `checkout` token because pushes made with `GITHUB_TOKEN` do not trigger subsequent workflows. Use a PAT stored as a repository secret (e.g. `READY_PUSHER`).
 
 ## Inputs
 
-| Input        | Required | Default                                                        | Description                     |
-| ------------ | -------- | -------------------------------------------------------------- | ------------------------------- |
-| `user_name`  |          | `Ready Pusher Bot`                                             | Git author name for the commit  |
-| `user_email` |          | `ready-pusher@${{ github.repository_owner }}.github.com`       | Git author email for the commit |
+| Input        | Required | Default                                                  | Description                     |
+| ------------ | -------- | -------------------------------------------------------- | ------------------------------- |
+| `user_name`  |          | `Ready Pusher Bot`                                       | Git author name for the commit  |
+| `user_email` |          | `ready-pusher@${{ github.repository_owner }}.github.com` | Git author email for the commit |
 
 ## How it works
 
