@@ -21,3 +21,5 @@
   recommit = commit -C HEAD --amend
   sweep = "!f() { git fetch --prune && git checkout main && git pull && for branch in $(git branch -vv | grep ': gone]' | awk \"{print \\$1}\"); do git branch -D \"$branch\"; done; }; f"
   mark-experimental = "!f() { git tag -f experimental $1 && git push origin --tags --force; }; f"
+  mark-v1 = "!f() { git tag -f v1 $1 && git push origin --tags --force; }; f"
+  

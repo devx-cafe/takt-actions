@@ -41,7 +41,7 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.READY_PUSHER }}
 
-      - uses: devx-cafe/takt-actions/pr-to-ready@experimental
-        # with: #Uncomment if you wnat to override any of the default inputs
+      - uses: devx-cafe/takt-actions/pr-to-ready@v1
+        # with: #Uncomment if you want to override any of the default inputs
           # user_name: #default is "Ready Pusher Bot"
           # user_email: #default is "ready-pusher@${{ github.repository_owner }}.github.com"
