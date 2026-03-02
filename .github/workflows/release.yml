@@ -74,12 +74,19 @@ jobs:
           echo "Tag: ${{ github.ref_name }}" >> .tmp/release/version.txt
           echo "Commit: ${{ github.sha }}" >> .tmp/release/version.txt
 
+      - name: Package release assets
+        run: |
+          mkdir -p .tmp/release
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          tar -czf ".tmp/release/takt-actions-${TAG}.tar.gz" -C .tmp/release .
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           files: |
-            ./.tmp/release/**/*
+            ./.tmp/release/takt-actions-${{ github.event.inputs.tag || github.ref_name }}.tar.gz
+            ./.tmp/release/version.txt
           body_path: .tmp/release/RELEASENOTES.md
           draft: ${{ steps.release_type.outputs.is_draft }}
           prerelease: ${{ steps.release_type.outputs.is_prerelease }}
