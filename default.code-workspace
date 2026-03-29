@@ -3,6 +3,9 @@
     {
       "path": ".",
     },
+    {
+      "path": "../../localhome/GitHub/lakruzz/workflows",
+    },
   ],
   "settings": {},
 }

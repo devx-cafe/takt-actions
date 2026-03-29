@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+
+install_gh_set_status() {
+  if gh extension list 2>/dev/null | grep -qE '(^|[[:space:]])lakruzz/gh-set-status([[:space:]]|$)'; then
+    echo "gh-set-status extension already installed"
+    return
+  fi
+
+  gh extension install lakruzz/gh-set-status 
+  echo "Installed gh-set-status extension"
+}
+
+prepare_artifact() {
+  local artifact_name="${1:?artifact_name is required}"
+  local artifact_path="${2:?artifact_path is required}"
+  local repository="${3:?repository is required}"
+
+  rm -rf "$artifact_path"
+  mkdir -p "$artifact_path"
+
+  gh run download -R "$repository" -D "$artifact_path" -n "$artifact_name"
+
+  if [[ ! -d "$artifact_path" ]]; then
+    fail "Error: '$artifact_path' directory does not exist. Ensure that artifact '$artifact_name' exists."
+  fi
+
+  if [[ -z "$(ls -A "$artifact_path")" ]]; then
+    fail "Error: '$artifact_path' directory is empty. Artifact '$artifact_name' could not be downloaded."
+  fi
+
+  echo "Downloaded artifact '$artifact_name' into '$artifact_path'"
+  ls -la "$artifact_path"
+
+  summary "✅ Prepared artifact '$artifact_name' for deployment"
+}
+
+deploy_to_repository() {
+  local artifact_path="${1:?artifact_path is required}"
+  local target_repository="${2:?target_repository is required}"
+  local target_branch="${3:?target_branch is required}"
+  local user_name="${4:?user_name is required}"
+  local user_email="${5:?user_email is required}"
+  local commit_message="${6:-}"
+  local cname="${7:-}"
+
+  if [[ ! -d "$artifact_path" ]]; then
+    fail "Artifact path '$artifact_path' was not found. Ensure artifact preparation step has run."
+  fi
+
+  if [[ -z "$commit_message" ]]; then
+    commit_message="Deploy artifact from $GITHUB_REPOSITORY@$GITHUB_REF_NAME"
+  fi
+
+  local deploy_dir
+  deploy_dir="$(mktemp -d)"
+  trap 'rm -rf '"$deploy_dir" EXIT
+
+  git init -b "$target_branch" "$deploy_dir" >/dev/null
+  cd "$deploy_dir"
+
+  git config user.name "$user_name"
+  git config user.email "$user_email"
+
+  shopt -s dotglob nullglob
+  cp -a "$GITHUB_WORKSPACE/$artifact_path"/* .
+  shopt -u dotglob nullglob
+
+  {
+    echo "Build from $GITHUB_REPOSITORY"
+    echo "Tag: $GITHUB_REF_NAME"
+    echo "Commit: $GITHUB_SHA"
+    echo "CNAME: $cname"
+  } > version.txt
+
+  if [[ -n "$cname" ]]; then
+    echo "$cname" > CNAME
+  fi
+
+  git add -A
+  git commit --allow-empty -m "$commit_message" >/dev/null
+  git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${target_repository}.git"
+
+  if git push -f origin "HEAD:${target_branch}"; then
+    summary "Successfully deployed to '$target_repository' on branch '$target_branch'"
+  else
+    fail "Deployment push to '$target_repository' on branch '$target_branch' failed"
+  fi
+}
+
+set_deploy_status() {
+  local outcome="${1:-}"
+  local page_url="${2:-}"
+  local status_context="${3:-}"
+
+  local status_state
+  local status_message
+
+  if [[ "$outcome" == "success" ]]; then
+    status_state="success"
+    status_icon="✅"
+    if [[ -n "$page_url" ]]; then
+      status_message="Deployment successful: $page_url"
+    else
+      status_message="Deployment successful"
+    fi
+    summary "$status_icon $status_message"
+  else
+    status_state="failure"
+    status_icon="❌"
+    status_message="Deployment failed"
+    summary "$status_icon $status_message."
+  fi
+
+  if [[ -n "$status_context" ]]; then
+    gh set-status "$status_state" "$status_message" "$status_context" || echo "Warning: failed to publish $status_state status"
+  else
+    gh set-status "$status_state" "$status_message" || echo "Warning: failed to publish $status_state status"
+  fi
+}

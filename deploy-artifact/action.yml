@@ -1,0 +1,70 @@
+name: "Deploy Artifact to Pages"
+description: "Fetches a built artifact and deploys it to GitHub Pages."
+
+inputs:
+  artifact_name:
+    description: "Name of the artifact containing the built site"
+    required: false
+    type: string
+    default: "site-${{ github.sha }}"
+  artifact_path:
+    description: "Local path where artifact will be downloaded"
+    required: false
+    type: string
+    default: "_site"
+  status_context:
+    description: "Optional status context for gh set-status"
+    required: false
+    type: string
+    default: "deploy:pages"
+
+outputs:
+  page_url:
+    description: "The URL of the deployed GitHub Pages site"
+    value: ${{ steps.deployment_pages.outputs.page_url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare artifact download
+      id: prepare
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        INPUT_ARTIFACT_PATH: ${{ inputs.artifact_path }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        source "$GITHUB_ACTION_PATH/../actionhelpers/ah-utils.ah"
+        source "$GITHUB_ACTION_PATH/../actionhelpers/deploy.ah"
+        install_gh_set_status
+        prepare_artifact "$INPUT_ARTIFACT_NAME" "$INPUT_ARTIFACT_PATH" "$GITHUB_REPOSITORY"
+
+    - name: Upload Pages artifact
+      uses: actions/upload-pages-artifact@v4
+      with:
+        path: ./${{ inputs.artifact_path }}
+        retention-days: 1
+        name: github-pages-${{ github.repository_id }}-${{ github.sha }}
+
+    - name: Deploy to GitHub Pages
+      id: deployment_pages
+      uses: actions/deploy-pages@v5
+      with:
+        artifact_name: github-pages-${{ github.repository_id }}-${{ github.sha }}
+
+    - name: Set deployment status
+      id: deployed_pages
+      if: ${{ always() }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_STATUS_CONTEXT: ${{ inputs.status_context }}
+        INPUT_DEPLOYMENT_OUTCOME: ${{ steps.deployment_pages.outcome }}
+        INPUT_DEPLOYMENT_PAGE_URL: ${{ steps.deployment_pages.outputs.page_url }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        source "$GITHUB_ACTION_PATH/../actionhelpers/ah-utils.ah"
+        source "$GITHUB_ACTION_PATH/../actionhelpers/deploy.ah"
+        install_gh_set_status
+        set_deploy_status "$INPUT_DEPLOYMENT_OUTCOME" "$INPUT_DEPLOYMENT_PAGE_URL" "$INPUT_STATUS_CONTEXT"
