@@ -2,12 +2,12 @@
 
 install_gh_set_status() {
   if gh extension list 2>/dev/null | grep -qE '(^|[[:space:]])lakruzz/gh-set-status([[:space:]]|$)'; then
-    summary "gh-set-status extension already installed"
+    echo "gh-set-status extension already installed"
     return
   fi
 
-  gh extension install lakruzz/gh-set-status --pin stable
-  summary "Installed gh-set-status extension"
+  gh extension install lakruzz/gh-set-status 
+  echo "Installed gh-set-status extension"
 }
 
 prepare_artifact() {
@@ -28,8 +28,10 @@ prepare_artifact() {
     fail "Error: '$artifact_path' directory is empty. Artifact '$artifact_name' could not be downloaded."
   fi
 
-  summary "Downloaded artifact '$artifact_name' into '$artifact_path'"
-  ls -la "$artifact_path" >> "$GITHUB_STEP_SUMMARY"
+  echo "Downloaded artifact '$artifact_name' into '$artifact_path'"
+  ls -la "$artifact_path"
+
+  summary "✅ Prepared artifact '$artifact_name' for deployment"
 }
 
 deploy_to_repository() {
@@ -95,21 +97,23 @@ set_deploy_status() {
 
   if [[ "$outcome" == "success" ]]; then
     status_state="success"
+    status_icon="✅"
     if [[ -n "$page_url" ]]; then
       status_message="Deployment successful: $page_url"
     else
       status_message="Deployment successful"
     fi
-    summary "$status_message"
+    summary "$status_icon $status_message"
   else
     status_state="failure"
+    status_icon="❌"
     status_message="Deployment failed"
-    summary "$status_message."
+    summary "$status_icon $status_message."
   fi
 
   if [[ -n "$status_context" ]]; then
-    gh set-status "$status_state" "$status_message" "$status_context" || summary "Warning: failed to publish $status_state status"
+    gh set-status "$status_state" "$status_message" "$status_context" || echo "Warning: failed to publish $status_state status"
   else
-    gh set-status "$status_state" "$status_message" || summary "Warning: failed to publish $status_state status"
+    gh set-status "$status_state" "$status_message" || echo "Warning: failed to publish $status_state status"
   fi
 }
