@@ -29,7 +29,7 @@ runs:
     - name: Prepare artifact download
       id: prepare
       env:
-        GH_TOKEN: ${{ github.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         INPUT_ARTIFACT_NAME: ${{ inputs.artifact_name }}
         INPUT_ARTIFACT_PATH: ${{ inputs.artifact_path }}
       shell: bash
@@ -57,7 +57,7 @@ runs:
       id: deployed_pages
       if: ${{ always() }}
       env:
-        GH_TOKEN: ${{ github.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         INPUT_STATUS_CONTEXT: ${{ inputs.status_context }}
         INPUT_DEPLOYMENT_OUTCOME: ${{ steps.deployment_pages.outcome }}
         INPUT_DEPLOYMENT_PAGE_URL: ${{ steps.deployment_pages.outputs.page_url }}
