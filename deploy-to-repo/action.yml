@@ -1,0 +1,101 @@
+name: "Deploy To Repository"
+description: "Fetches a built artifact and force-pushes it to a target branch in a repository."
+
+inputs:
+  token:
+    description: "GitHub token with write permissions for the target repository. Uses GITHUB_TOKEN by default, but that will NOT trigger other workflows on the target repo. Provide a PAT if follow-on workflows are needed."
+    required: false
+    type: string
+    default: ${{ github.token }}
+  target_repository:
+    description: "Target repository in owner/repo format"
+    required: true
+    type: string
+  artifact_name:
+    description: "Name of the artifact to download"
+    required: true
+    type: string
+  artifact_path:
+    description: "Local path where artifact will be downloaded"
+    required: false
+    type: string
+    default: "_site"
+  target_branch:
+    description: "Target branch in target repository"
+    required: false
+    type: string
+    default: "main"
+  user_name:
+    description: "Git user name for the deployment commit"
+    required: true
+    type: string
+  user_email:
+    description: "Git user email for the deployment commit"
+    required: true
+    type: string
+  commit_message:
+    description: "Commit message for deployment"
+    required: false
+    type: string
+    default: ""
+  cname:
+    description: "Optional custom domain written to CNAME"
+    required: false
+    type: string
+    default: ""
+  status_context:
+    description: "Optional status context for gh set-status"
+    required: false
+    type: string
+    default: "deploy:repo"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare artifact download
+      id: prepare
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_ARTIFACT_NAME: ${{ inputs.artifact_name }}
+        INPUT_ARTIFACT_PATH: ${{ inputs.artifact_path }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        source "$GITHUB_ACTION_PATH/../actionhelpers/ah-utils.ah"
+        source "$GITHUB_ACTION_PATH/../actionhelpers/deploy.ah"
+        install_gh_set_status
+        prepare_artifact "$INPUT_ARTIFACT_NAME" "$INPUT_ARTIFACT_PATH" "$GITHUB_REPOSITORY"
+
+    - name: Deploy to target repository
+      id: deployment_repo
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        INPUT_ARTIFACT_PATH: ${{ inputs.artifact_path }}
+        INPUT_TARGET_REPOSITORY: ${{ inputs.target_repository }}
+        INPUT_TARGET_BRANCH: ${{ inputs.target_branch }}
+        INPUT_USER_NAME: ${{ inputs.user_name }}
+        INPUT_USER_EMAIL: ${{ inputs.user_email }}
+        INPUT_COMMIT_MESSAGE: ${{ inputs.commit_message }}
+        INPUT_CNAME: ${{ inputs.cname }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        source "$GITHUB_ACTION_PATH/../actionhelpers/ah-utils.ah"
+        source "$GITHUB_ACTION_PATH/../actionhelpers/deploy.ah"
+        install_gh_set_status
+        deploy_to_repository "$INPUT_ARTIFACT_PATH" "$INPUT_TARGET_REPOSITORY" "$INPUT_TARGET_BRANCH" "$INPUT_USER_NAME" "$INPUT_USER_EMAIL" "$INPUT_COMMIT_MESSAGE" "$INPUT_CNAME"
+
+    - name: Set deployment status
+      id: deployed_repo
+      if: ${{ always() }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        INPUT_STATUS_CONTEXT: ${{ inputs.status_context }}
+        INPUT_DEPLOYMENT_OUTCOME: ${{ steps.deployment_repo.outcome }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        source "$GITHUB_ACTION_PATH/../actionhelpers/ah-utils.ah"
+        source "$GITHUB_ACTION_PATH/../actionhelpers/deploy.ah"
+        install_gh_set_status
+        set_deploy_status "$INPUT_DEPLOYMENT_OUTCOME" "" "$INPUT_STATUS_CONTEXT"
